@@ -1,0 +1,29 @@
+services:
+  juice-shop:
+    image: bkimminich/juice-shop:latest
+    container_name: juice-shop
+    ports:
+      - "3000:3000"
+    networks:
+      - dast-network
+    healthcheck:
+      test: [ "CMD", "/nodejs/bin/node", "-e", "fetch('http://localhost:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  zap-scanner:
+    image: zaproxy/zap-stable:latest
+    container_name: zap-scanner
+    depends_on:
+      juice-shop:
+        condition: service_healthy
+    volumes:
+      - ./zap-reports:/zap/wrk/:rw
+    user: "0:0" 
+    command: zap.sh -cmd -autorun /zap/wrk/zap-plan.yaml
+    networks:
+      - dast-network
+networks:
+  dast-network:
+    driver: bridge

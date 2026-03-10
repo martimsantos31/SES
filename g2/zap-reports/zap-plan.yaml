@@ -1,0 +1,57 @@
+env:
+  contexts:
+  - name: "juice-shop"
+    urls:
+    - "http://juice-shop:3000"
+    includePaths: []
+    excludePaths: 
+    - "http://juice-shop:3000/rest/user/logout"
+    authentication:
+      method: "json"
+      parameters:
+        loginPageUrl: "http://juice-shop:3000/#/login"
+        loginRequestUrl: "http://juice-shop:3000/rest/user/login"
+        loginRequestBody: '{"email":"{%username%}","password":"{%password%}"}'
+      verification:
+        method: "response"
+        loggedOutRegex: "401 Unauthorized"
+        loggedInRegex: ".*token.*"
+    users:
+    - name: "admin-user"
+      credentials:
+        username: "admin@juice-sh.op"
+        password: "admin123"
+  parameters:
+    failOnError: false
+    failOnWarning: false
+    progressToStdout: true
+jobs:
+- type: spider
+  parameters:
+    context: "juice-shop"
+    user: "admin-user"
+    url: "http://juice-shop:3000"
+    maxDuration: 1 
+
+- type: activeScan
+  parameters:
+    context: "juice-shop"
+    user: "admin-user"
+    maxRuleDurationInMins: 1
+    maxScanDurationInMins: 2
+  policyDefinition:
+    defaultStrength: "Low"
+    defaultThreshold: "Medium"
+
+- type: report
+  parameters:
+    template: traditional-html
+    reportDir: /zap/wrk
+    reportFile: zap-report.html
+    reportTitle: "ZAP Automation Framework Report"
+- type: report
+  parameters:
+    template: risk-confidence-html
+    reportDir: /zap/wrk
+    reportFile: risk-report.html
+    reportTitle: "ZAP Risk/Confidence Report"
