@@ -9,7 +9,8 @@ jobs:
   security-scan:
     name: ZAP DAST Scan
     runs-on: ubuntu-latest
-    
+    defaults:
+      working-directory: ./g2
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
